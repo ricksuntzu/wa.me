@@ -7,104 +7,46 @@ const url = "https://script.google.com/macros/s/AKfycby04nvvnEzl1SsHql0JRWt1z2ZV
 
 const cod = "1n-awSHonxw85zjeoZXH9xUu6BcG134UY8vBLPsgSe7c";
 const pagina = "CELL";//"CTRL";
-const celulasAllUnits = "O1:O2"
+const celulasAllUnits = "A1:G2"
  
-
-
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 //https://codepen.io/ecupaio/pen/QVrQov
 document.addEventListener('DOMContentLoaded',loadDataAll);
 
 
 function loadDataAll(){
 
-  var vtrCell = JSON.parse( localStorage.getItem('dadosCll') );
-  if(!vtrCell){
-    showLoadingOverlay();
+  var dadosCll = JSON.parse( localStorage.getItem('dadosCll') );
+  //if(!dadosCll){
     fetch(url + `?cod=${cod}&pagina=${pagina}&celulas=${celulasAllUnits}` ).then((res)=>{return res.json()}).then((data)=>{
       makeLocalStorage(data,'dadosCll');
     })
-  }else{// if(!dadosCll){
+  //}// if(!dadosCll){
+
+
+}
+
+
+
+
+function makeLocalStorage(dados,name){
+  var { data } = dados;
+
+
+  var vtrCell = data.find((a,b) => a.campo1===parseInt(cel) );   
+  
+  if(vtrCell){
     document.getElementById('grp_name').innerText = vtrCell.campo4;
-    //document.getElementById('grp_img').setAttribute("style",`background-image: url(${vtrCell.campo5})`);// = vtrCell.campo4;
-    //"images/spinner.png?ccb=11-4&amp;oh=01_AdTIcSfFu6yFPYilYwbioX01OKcMc32IvH9UII0C8rbsYQ&amp;oe=649C2F54"
-    document.getElementById('grp_img').setAttribute("src",`${vtrCell.campo5}?ccb=11-4&amp;oh=01_AdTIcSfFu6yFPYilYwbioX01OKcMc32IvH9UII0C8rbsYQ&amp;oe=649C2F54`);// = vtrCell.campo4;
-    
+    document.getElementById('grp_img').setAttribute("style",`background-image: url(${vtrCell.campo5})`);// = vtrCell.campo4;
     Object.assign(vtrCell,{latLong:{lat:0,lon:0,acc:0,alt:0,dir:0,spd:0}})
     
-    localStorage.setItem('dadosCll', JSON.stringify(vtrCell) )  
+    localStorage.setItem(name, JSON.stringify(vtrCell) )    
   }
-
-
 }
 
 
 
 
-async function makeLocalStorage(dados,name){
-  var { data } = dados;
- 
 
-
-  
-  var retFalse = -1;
-  fetch(url + `?cod=${cod}&pagina=${pagina}&celulas=${data[0].campo0}` ).then((res)=>{return res.json()}).then(async (data)=>{
-    retFalse = await makeLocalStorageCells(data,'Clls');
-    
-    if(retFalse){
-        var vtrCell = retFalse.find((a,b) => a.campo1===parseInt(cel) );
-
-        if(vtrCell){
-          document.getElementById('grp_name').innerText = vtrCell.campo4;
-          //document.getElementById('grp_img').setAttribute("style",`background-image: url(${vtrCell.campo5})`);// = vtrCell.campo4;
-          //"images/spinner.png?ccb=11-4&amp;oh=01_AdTIcSfFu6yFPYilYwbioX01OKcMc32IvH9UII0C8rbsYQ&amp;oe=649C2F54"
-          document.getElementById('grp_img').setAttribute("src",`${vtrCell.campo5}?ccb=11-4&amp;oh=01_AdTIcSfFu6yFPYilYwbioX01OKcMc32IvH9UII0C8rbsYQ&amp;oe=649C2F54`);// = vtrCell.campo4;
-          
-          Object.assign(vtrCell,{latLong:{lat:0,lon:0,acc:0,alt:0,dir:0,spd:0}})
-          
-          localStorage.setItem( name, JSON.stringify(vtrCell) )
-
-        }
-
-        hideLoadingOverlay();
-
-    }
-  });
-
- 
-
-  return
-}
-
-async function makeLocalStorageCells(dados,name){
-  var { data } = dados;
-
-  return data;
-}
-
-function redirectNewAba(url) {
-  // var novaJanela = window.open(url);
-  // novaJanela.focus();
-
-  var novaAba = window.open(url, '_blank');
-  novaAba.focus();
-
-}
-
-// Função para exibir o overlay de loading
-function showLoadingOverlay() {
-  const overlay = document.getElementById('loading-overlay');
-  overlay.style.display = 'block';
-}
-
-// Função para ocultar o overlay de loading
-function hideLoadingOverlay() {
-  const overlay = document.getElementById('loading-overlay');
-  overlay.style.display = 'none';
-}
 
 
 
@@ -191,6 +133,7 @@ function locate()
     if(dadosCll){
       const distance = calculateDistance( [dadosCll.latLong.lat, dadosCll.latLong.lon], [lat, lon] );
 
+      console.log(distance) 
       //latLong:{lat:0,lon:0,acc:0,alt:0,dir:0,spd:0}
       if( distance>dadosCll.campo6 ){
         Object.assign(dadosCll,{latLong:{lat,lon,acc,alt,dir,spd}})
@@ -207,15 +150,11 @@ function locate()
                   //success
                   //$('#form-success').text('Registro realizado com sucesso!');
                   //$("#form-success").fadeIn().delay(5000).fadeOut(clearFormsInput);
-                  redirectNewAba('https://web.whatsapp.com/')
-
               }, 
               200: function(data) {//200 is a success code. it went through!
                   //success
                   //$('#form-success').text('Registro realizado com sucesso!');
                   //$("#form-success").fadeIn().delay(5000).fadeOut(clearFormsInput);
-                  redirectNewAba('https://web.whatsapp.com/')
-
               },
               403: function(data) {//403 is when something went wrong and the submission didn't go through
               //error
@@ -233,11 +172,6 @@ function locate()
 
 
 
-    }else{
-      showLoadingOverlay();
-      fetch(url + `?cod=${cod}&pagina=${pagina}&celulas=${celulasAllUnits}` ).then((res)=>{return res.json()}).then((data)=>{
-        makeLocalStorage(data,'dadosCll');
-      })
     }
     /*
     $.ajax({
